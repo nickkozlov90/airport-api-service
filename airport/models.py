@@ -5,14 +5,18 @@ from django.db import models
 
 class Airport(models.Model):
     name = models.CharField(max_length=255)
+    short_name = models.CharField(max_length=255, null=True, blank=True)
     closest_big_city = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"{self.name} ({self.closest_big_city})"
+        return f"{self.name} Airport ({self.closest_big_city})"
 
 
 class AirplaneType(models.Model):
     name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.name}"
 
 
 class Airplane(models.Model):
@@ -55,7 +59,10 @@ class Route(models.Model):
     distance = models.IntegerField()
 
     def __str__(self):
-        return self.source + "-" + str(self.destination)
+        return f"{self.source.short_name}" \
+               f"({self.source.closest_big_city})" \
+               f" - {self.destination.short_name}" \
+               f"({self.destination.closest_big_city})"
 
 
 class Flight(models.Model):
@@ -66,10 +73,11 @@ class Flight(models.Model):
     crew = models.ManyToManyField(Crew, related_name="flights")
 
     class Meta:
-        ordering = ["-departure_time"]
+        ordering = ["departure_time"]
 
     def __str__(self):
-        return f"{self.route}, Arrival time: {str(self.arrival_time)}"
+        return f"{self.route}, Departure time: " \
+               f"{str(self.departure_time.strftime('%Y-%m-%d %H:%M'))}"
 
 
 class Order(models.Model):
@@ -78,11 +86,11 @@ class Order(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE
     )
 
-    def __str__(self):
-        return str(self.created_at)
-
     class Meta:
         ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{str(self.created_at.strftime('%Y-%m-%d %H:%M'))}"
 
 
 class Ticket(models.Model):
@@ -102,4 +110,4 @@ class Ticket(models.Model):
 
     class Meta:
         unique_together = ("flight", "row", "seat")
-        ordering = ["row", "seat"]
+        ordering = ["flight__departure_time", "row", "seat"]
