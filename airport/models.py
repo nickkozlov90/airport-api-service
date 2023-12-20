@@ -47,22 +47,20 @@ class Crew(models.Model):
 
 class Route(models.Model):
     source = models.ForeignKey(
-        Airport,
-        on_delete=models.CASCADE,
-        related_name="route_sources"
+        Airport, on_delete=models.CASCADE, related_name="route_sources"
     )
     destination = models.ForeignKey(
-        Airport,
-        on_delete=models.CASCADE,
-        related_name="route_destinations"
+        Airport, on_delete=models.CASCADE, related_name="route_destinations"
     )
     distance = models.IntegerField()
 
     def __str__(self):
-        return f"{self.source.short_name}" \
-               f"({self.source.closest_big_city})" \
-               f" - {self.destination.short_name}" \
-               f"({self.destination.closest_big_city})"
+        return (
+            f"{self.source.short_name}"
+            f"({self.source.closest_big_city})"
+            f" - {self.destination.short_name}"
+            f"({self.destination.closest_big_city})"
+        )
 
 
 class Flight(models.Model):
@@ -76,14 +74,17 @@ class Flight(models.Model):
         ordering = ["departure_time"]
 
     def __str__(self):
-        return f"{self.route}, Departure time: " \
-               f"{str(self.departure_time.strftime('%Y-%m-%d %H:%M'))}"
+        return (
+            f"{self.route}, Departure time: "
+            f"{str(self.departure_time.strftime('%Y-%m-%d %H:%M'))}"
+        )
 
 
 class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
     )
 
     class Meta:
@@ -95,18 +96,20 @@ class Order(models.Model):
 
 class Ticket(models.Model):
     flight = models.ForeignKey(
-        Flight, on_delete=models.CASCADE, related_name="tickets"
+        Flight,
+        on_delete=models.CASCADE,
+        related_name="tickets"
     )
     order = models.ForeignKey(
-        Order, on_delete=models.CASCADE, related_name="tickets"
+        Order,
+        on_delete=models.CASCADE,
+        related_name="tickets"
     )
     row = models.IntegerField()
     seat = models.IntegerField()
 
     def __str__(self):
-        return (
-            f"{str(self.flight)} (row: {self.row}, seat: {self.seat})"
-        )
+        return f"{str(self.flight)} (row: {self.row}, seat: {self.seat})"
 
     class Meta:
         unique_together = ("flight", "row", "seat")

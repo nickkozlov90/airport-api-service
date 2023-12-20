@@ -19,20 +19,12 @@ admin.site.register(Flight)
 
 @admin.register(Airport)
 class AirportListingAdmin(admin.ModelAdmin):
-    list_display = [
-        "name",
-        "short_name",
-        "closest_big_city"
-    ]
+    list_display = ["name", "short_name", "closest_big_city"]
 
 
 @admin.register(Airplane)
 class AirplaneListingAdmin(admin.ModelAdmin):
-    list_display = [
-        "name",
-        "airplane_type",
-        "capacity"
-    ]
+    list_display = ["name", "airplane_type", "capacity"]
 
 
 @admin.register(Order)
