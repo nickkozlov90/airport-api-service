@@ -4,10 +4,12 @@ from rest_framework.viewsets import GenericViewSet
 from airport.models import (
     Airport,
     AirplaneType,
+    Airplane,
 )
 from airport.serializers import (
     AirportSerializer,
     AirplaneTypeSerializer,
+    AirplaneSerializer,
 )
 
 
@@ -27,3 +29,12 @@ class AirplaneTypeViewSet(
 ):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
+
+
+class AirplaneViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
+    queryset = Airplane.objects.all()
+    serializer_class = AirplaneSerializer
