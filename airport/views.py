@@ -6,12 +6,16 @@ from airport.models import (
     AirplaneType,
     Airplane,
     Crew,
+    Route,
 )
 from airport.serializers import (
     AirportSerializer,
     AirplaneTypeSerializer,
     AirplaneSerializer,
     CrewSerializer,
+    RouteSerializer,
+    RouteListSerializer,
+    # RouteDetailSerializer,
 )
 
 
@@ -49,3 +53,19 @@ class CrewViewSet(
 ):
     queryset = Crew.objects.all()
     serializer_class = CrewSerializer
+
+
+class RouteViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet,
+):
+    queryset = Route.objects.prefetch_related("source", "destination")
+    serializer_class = RouteSerializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return RouteListSerializer
+
+        return RouteSerializer
