@@ -129,7 +129,6 @@ class TicketListSerializer(TicketSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
     tickets = TicketSerializer(many=True, read_only=False, allow_empty=False)
 
     class Meta:
@@ -138,4 +137,5 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class OrderListSerializer(OrderSerializer):
+    created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
     tickets = TicketListSerializer(many=True, read_only=True)
