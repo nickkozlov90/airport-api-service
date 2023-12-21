@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from airport.models import (
-    Airport, Airplane, Crew, Route,
+    Airport, Airplane, Crew, Route, Flight,
 )
 
 
@@ -48,4 +48,69 @@ class RouteListSerializer(RouteSerializer):
 
     class Meta:
         model = Route
-        fields = ("source", "destination")
+        fields = ("id", "source", "destination")
+
+
+class RouteDetailSerializer(RouteSerializer):
+    source = serializers.SlugRelatedField(
+        read_only=True, slug_field="name"
+    )
+    destination = serializers.SlugRelatedField(
+        read_only=True, slug_field="name"
+    )
+
+    class Meta:
+        model = Route
+        fields = ("id", "source", "destination", "distance")
+
+
+class FlightSerializer(serializers.ModelSerializer):
+    route = RouteListSerializer(read_only=True)
+    departure_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
+    arrival_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
+
+    class Meta:
+        model = Flight
+        fields = (
+            "id",
+            "route",
+            "airplane",
+            "departure_time",
+            "arrival_time",
+            "crew"
+        )
+
+
+class FlightListSerializer(FlightSerializer):
+    airplane = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field="name",
+    )
+
+    class Meta:
+        model = Flight
+        fields = (
+            "id",
+            "route",
+            "airplane",
+            "departure_time",
+            "arrival_time",
+        )
+
+
+class FlightDetailSerializer(FlightSerializer):
+    airplane = AirplaneSerializer(
+        read_only=True
+    )
+    crew = serializers.StringRelatedField(many=True)
+
+    class Meta:
+        model = Flight
+        fields = (
+            "id",
+            "route",
+            "airplane",
+            "departure_time",
+            "arrival_time",
+            "crew"
+        )
