@@ -1,4 +1,5 @@
 from rest_framework import mixins
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import GenericViewSet
 
 from airport.models import (
@@ -6,7 +7,7 @@ from airport.models import (
     AirplaneType,
     Airplane,
     Crew,
-    Route, Flight,
+    Route, Flight, Order,
 )
 from airport.serializers import (
     AirportSerializer,
@@ -18,7 +19,7 @@ from airport.serializers import (
     RouteDetailSerializer,
     FlightListSerializer,
     FlightDetailSerializer,
-    FlightSerializer,
+    FlightSerializer, OrderSerializer, OrderListSerializer,
 )
 
 
@@ -91,3 +92,26 @@ class FlightViewSet(
             return FlightDetailSerializer
 
         return FlightSerializer
+
+
+class OrderPagination(PageNumberPagination):
+    page_size = 10
+    max_page_size = 100
+
+
+class OrderViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    GenericViewSet,
+):
+    queryset = Order.objects.prefetch_related(
+        "tickets__flight__airplane", "tickets__flight__route"
+    )
+    serializer_class = OrderSerializer
+    pagination_class = OrderPagination
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return OrderListSerializer
+
+        return OrderSerializer

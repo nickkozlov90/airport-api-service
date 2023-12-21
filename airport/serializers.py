@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from airport.models import (
-    Airport, Airplane, Crew, Route, Flight,
+    Airport, Airplane, Crew, Route, Flight, Order, Ticket,
 )
 
 
@@ -114,3 +114,30 @@ class FlightDetailSerializer(FlightSerializer):
             "arrival_time",
             "crew"
         )
+
+
+class TicketSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Ticket
+        fields = "__all__"
+
+
+class TicketListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Ticket
+        fields = "__all__"
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
+    tickets = TicketSerializer(many=True, read_only=False, allow_empty=False)
+
+    class Meta:
+        model = Order
+        fields = ("id", "created_at", "tickets")
+
+
+class OrderListSerializer(OrderSerializer):
+    tickets = TicketListSerializer(many=True, read_only=True)
