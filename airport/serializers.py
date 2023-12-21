@@ -94,8 +94,13 @@ class FlightListSerializer(FlightSerializer):
 
 
 class FlightDetailSerializer(FlightSerializer):
-    airplane = AirplaneSerializer(
-        read_only=True
+    airplane_name = serializers.CharField(
+        read_only=True,
+        source="airplane.name"
+    )
+    airplane_type = serializers.CharField(
+        read_only=True,
+        source="airplane.airplane_type"
     )
     crew = serializers.StringRelatedField(many=True)
 
@@ -104,9 +109,10 @@ class FlightDetailSerializer(FlightSerializer):
         fields = (
             "id",
             "route",
-            "airplane",
             "departure_time",
             "arrival_time",
+            "airplane_name",
+            "airplane_type",
             "crew"
         )
 
