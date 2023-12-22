@@ -1,3 +1,4 @@
+from django.db.models import Count, F
 from rest_framework import mixins
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import GenericViewSet
@@ -7,7 +8,9 @@ from airport.models import (
     AirplaneType,
     Airplane,
     Crew,
-    Route, Flight, Order,
+    Route,
+    Flight,
+    Order,
 )
 from airport.serializers import (
     AirportSerializer,
@@ -19,7 +22,9 @@ from airport.serializers import (
     RouteDetailSerializer,
     FlightListSerializer,
     FlightDetailSerializer,
-    FlightSerializer, OrderSerializer, OrderListSerializer,
+    FlightSerializer,
+    OrderSerializer,
+    OrderListSerializer,
 )
 
 
@@ -87,7 +92,9 @@ class FlightViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet,
 ):
-    queryset = Flight.objects.prefetch_related("route", "airplane", "crew")
+    queryset = Flight.objects.select_related(
+        "airplane", "route__source", "route__destination"
+    ).prefetch_related("crew")
     serializer_class = RouteSerializer
     pagination_class = FlightPagination
 
@@ -111,6 +118,13 @@ class FlightViewSet(
             queryset = queryset.filter(
                 route__destination__name__icontains=destination
             )
+
+        if self.action == "list":
+            queryset = queryset.annotate(
+                tickets_available=F("airplane__rows")
+                * F("airplane__seats_in_row")
+                - Count("tickets")
+            ).order_by("departure_time")
 
         return queryset
 

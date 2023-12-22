@@ -3,7 +3,13 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from airport.models import (
-    Airport, Airplane, Crew, Route, Flight, Order, Ticket,
+    Airport,
+    Airplane,
+    Crew,
+    Route,
+    Flight,
+    Order,
+    Ticket,
 )
 
 
@@ -23,7 +29,12 @@ class AirplaneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airplane
         fields = (
-            "id", "airplane_type", "name", "rows", "seats_in_row", "capacity"
+            "id",
+            "airplane_type",
+            "name",
+            "rows",
+            "seats_in_row",
+            "capacity"
         )
 
 
@@ -34,7 +45,6 @@ class CrewSerializer(serializers.ModelSerializer):
 
 
 class RouteSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Route
         fields = ("id", "source", "destination", "distance")
@@ -42,10 +52,12 @@ class RouteSerializer(serializers.ModelSerializer):
 
 class RouteListSerializer(RouteSerializer):
     source = serializers.SlugRelatedField(
-        read_only=True, slug_field="name"
+        read_only=True,
+        slug_field="name"
     )
     destination = serializers.SlugRelatedField(
-        read_only=True, slug_field="name"
+        read_only=True,
+        slug_field="name"
     )
 
     class Meta:
@@ -55,10 +67,12 @@ class RouteListSerializer(RouteSerializer):
 
 class RouteDetailSerializer(RouteSerializer):
     source = serializers.SlugRelatedField(
-        read_only=True, slug_field="name"
+        read_only=True,
+        slug_field="name"
     )
     destination = serializers.SlugRelatedField(
-        read_only=True, slug_field="name"
+        read_only=True,
+        slug_field="name"
     )
 
     class Meta:
@@ -84,6 +98,11 @@ class FlightSerializer(serializers.ModelSerializer):
 
 
 class FlightListSerializer(FlightSerializer):
+    airplane_num_seats = serializers.IntegerField(
+        source="airplane.capacity",
+        read_only=True,
+    )
+    tickets_available = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Flight
@@ -92,6 +111,8 @@ class FlightListSerializer(FlightSerializer):
             "route",
             "departure_time",
             "arrival_time",
+            "airplane_num_seats",
+            "tickets_available",
         )
 
 
