@@ -1,14 +1,11 @@
-from typing import Type
-
 from django.conf import settings
-from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
+from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import Model
 
 
 class Airport(models.Model):
-    name = models.CharField(max_length=255)
-    short_name = models.CharField(max_length=255, null=True, blank=True)
+    name = models.CharField(max_length=255, unique=True)
+    short_name = models.CharField(max_length=255, unique=True)
     closest_big_city = models.CharField(max_length=255)
 
     def __str__(self):
@@ -16,14 +13,14 @@ class Airport(models.Model):
 
 
 class AirplaneType(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return f"{self.name}"
 
 
 class Airplane(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     rows = models.IntegerField()
     seats_in_row = models.IntegerField()
     airplane_type = models.ForeignKey(AirplaneType, on_delete=models.CASCADE)

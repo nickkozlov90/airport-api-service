@@ -76,6 +76,11 @@ class RouteViewSet(
         return RouteSerializer
 
 
+class FlightPagination(PageNumberPagination):
+    page_size = 10
+    max_page_size = 100
+
+
 class FlightViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -84,6 +89,30 @@ class FlightViewSet(
 ):
     queryset = Flight.objects.prefetch_related("route", "airplane", "crew")
     serializer_class = RouteSerializer
+    pagination_class = FlightPagination
+
+    @staticmethod
+    def _params_to_ints(qs):
+        """Converts a list of string IDs to a list of integers"""
+        return [int(str_id) for str_id in qs.split(",")]
+
+    def get_queryset(self):
+        source = self.request.query_params.get("source")
+        destination = self.request.query_params.get("destination")
+
+        queryset = self.queryset
+
+        if source:
+            queryset = queryset.filter(
+                route__source__name__icontains=source
+            )
+
+        if destination:
+            queryset = queryset.filter(
+                route__destination__name__icontains=destination
+            )
+
+        return queryset
 
     def get_serializer_class(self):
         if self.action == "list":
