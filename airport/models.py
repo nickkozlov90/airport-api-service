@@ -139,7 +139,3 @@ class Ticket(models.Model):
     class Meta:
         unique_together = ("flight", "row", "seat")
         ordering = ["flight__departure_time", "row", "seat"]
-        constraints = [
-            models.UniqueConstraint(fields=["flight", 'row', 'seat'], name='unique_set_row',
-                                    violation_error_message='Seat with entered data has been already ordered'),
-        ]
