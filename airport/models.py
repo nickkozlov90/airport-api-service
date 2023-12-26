@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
 from django.db import models
 
 
@@ -132,10 +132,18 @@ class Ticket(models.Model):
             self.flight.airplane,
             ValidationError,
         )
+        self.validate_unique()
 
     def __str__(self):
         return f"{str(self.flight)} (row: {self.row}, seat: {self.seat})"
 
     class Meta:
-        unique_together = ("flight", "row", "seat")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["flight", "row", "seat"],
+                name="validate_unique"
+            )
+        ]
         ordering = ["flight__departure_time", "row", "seat"]
+
+
