@@ -10,7 +10,7 @@ from airport.models import (
     Airport,
     AirplaneType,
     Airplane,
-    Crew,
+    Airline,
     Route,
     Flight,
     Order,
@@ -18,9 +18,11 @@ from airport.models import (
 from airport.permissions import IsAdminOrIfAuthenticatedReadOnly
 from airport.serializers import (
     AirportSerializer,
+    AirlineSerializer,
+    AirlineListSerializer,
+    AirlineImageSerializer,
     AirplaneTypeSerializer,
     AirplaneSerializer,
-    CrewSerializer,
     RouteSerializer,
     RouteListSerializer,
     RouteDetailSerializer,
@@ -29,7 +31,6 @@ from airport.serializers import (
     FlightSerializer,
     OrderSerializer,
     OrderListSerializer,
-    AirplaneImageSerializer,
 )
 
 
@@ -41,6 +42,42 @@ class AirportViewSet(
     queryset = Airport.objects.all()
     serializer_class = AirportSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+
+
+class AirlineViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
+    queryset = Airline.objects.all()
+    serializer_class = AirlineSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return AirlineListSerializer
+
+        if self.action == "upload_image":
+            return AirlineImageSerializer
+
+        return AirlineSerializer
+
+    @action(
+        methods=["POST"],
+        detail=True,
+        url_path="upload-image",
+        permission_classes=[IsAdminUser],
+    )
+    def upload_image(self, request, pk=None):
+        """Endpoint for uploading image to specific airline"""
+        airline = self.get_object()
+        serializer = self.get_serializer(airline, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AirplaneTypeViewSet(
@@ -61,39 +98,6 @@ class AirplaneViewSet(
 ):
     queryset = Airplane.objects.all()
     serializer_class = AirplaneSerializer
-    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
-
-    def get_serializer_class(self):
-        if self.action == "upload_image":
-            return AirplaneImageSerializer
-
-        return AirplaneSerializer
-
-    @action(
-        methods=["POST"],
-        detail=True,
-        url_path="upload-image",
-        permission_classes=[IsAdminUser],
-    )
-    def upload_image(self, request, pk=None):
-        """Endpoint for uploading image to specific airplane"""
-        airplane = self.get_object()
-        serializer = self.get_serializer(airplane, data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class CrewViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet,
-):
-    queryset = Crew.objects.all()
-    serializer_class = CrewSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
@@ -128,8 +132,8 @@ class FlightViewSet(
 ):
     queryset = Flight.objects.select_related(
         "airplane", "route__source", "route__destination"
-    ).prefetch_related("crew")
-    serializer_class = RouteSerializer
+    ).prefetch_related("airline")
+    serializer_class = FlightSerializer
     pagination_class = FlightPagination
 
     @staticmethod

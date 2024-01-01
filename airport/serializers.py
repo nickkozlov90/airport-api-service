@@ -5,8 +5,8 @@ from rest_framework.validators import UniqueTogetherValidator
 
 from airport.models import (
     Airport,
+    Airline,
     Airplane,
-    Crew,
     Route,
     Flight,
     Order,
@@ -18,6 +18,24 @@ class AirportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airport
         fields = ("id", "name", "closest_big_city")
+
+
+class AirlineSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Airline
+        fields = ("id", "name")
+
+
+class AirlineListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Airline
+        fields = ("id", "name", "image")
+
+
+class AirlineImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Airline
+        fields = ("id", "image")
 
 
 class AirplaneTypeSerializer(serializers.ModelSerializer):
@@ -37,18 +55,6 @@ class AirplaneSerializer(serializers.ModelSerializer):
             "seats_in_row",
             "capacity"
         )
-
-
-class AirplaneImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Airplane
-        fields = ("id", "image")
-
-
-class CrewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Crew
-        fields = ("id", "first_name", "last_name", "full_name")
 
 
 class RouteSerializer(serializers.ModelSerializer):
@@ -89,18 +95,20 @@ class RouteDetailSerializer(RouteSerializer):
 
 class FlightSerializer(serializers.ModelSerializer):
     route = RouteListSerializer(read_only=True)
-    departure_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
-    arrival_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M")
+    departure_time = serializers.DateTimeField(
+        read_only=True, format="%Y-%m-%d %H:%M"
+    )
+    arrival_time = serializers.DateTimeField(
+        read_only=True, format="%Y-%m-%d %H:%M"
+    )
 
     class Meta:
         model = Flight
         fields = (
             "id",
             "route",
-            "airplane",
             "departure_time",
             "arrival_time",
-            "crew"
         )
 
 
@@ -116,6 +124,10 @@ class FlightListSerializer(FlightSerializer):
         read_only=True,
     )
     tickets_available = serializers.IntegerField(read_only=True)
+    airline_image = serializers.ImageField(
+        source="airline.image",
+        read_only=True
+    )
 
     class Meta:
         model = Flight
@@ -127,6 +139,7 @@ class FlightListSerializer(FlightSerializer):
             "arrival_time",
             "airplane_num_seats",
             "tickets_available",
+            "airline_image",
         )
 
 
@@ -172,7 +185,7 @@ class FlightDetailSerializer(FlightSerializer):
         read_only=True,
         source="airplane.airplane_type"
     )
-    crew = serializers.StringRelatedField(many=True)
+    airline = AirlineListSerializer()
     taken_tickets = TicketSeatsSerializer(
         source="tickets",
         many=True,
@@ -186,9 +199,9 @@ class FlightDetailSerializer(FlightSerializer):
             "route",
             "departure_time",
             "arrival_time",
+            "airline",
             "airplane_name",
             "airplane_type",
-            "crew",
             "taken_tickets",
         )
 

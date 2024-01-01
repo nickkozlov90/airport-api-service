@@ -9,11 +9,26 @@ from django.utils.text import slugify
 
 class Airport(models.Model):
     name = models.CharField(max_length=255, unique=True)
-    short_name = models.CharField(max_length=255, unique=True)
+    code = models.CharField(max_length=255, unique=True)
     closest_big_city = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"{self.name} Airport ({self.closest_big_city})"
+        return f"{self.name}, {self.closest_big_city} ({self.code})"
+
+
+def airline_image_file_path(instance, filename):
+    _, extension = os.path.splitext(filename)
+    filename = f"{slugify(instance.name)}-{uuid.uuid4()}.{extension}"
+
+    return os.path.join("uploads/airlines/", filename)
+
+
+class Airline(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    image = models.ImageField(null=True, upload_to=airline_image_file_path)
+
+    def __str__(self):
+        return f"{self.name}"
 
 
 class AirplaneType(models.Model):
@@ -23,19 +38,11 @@ class AirplaneType(models.Model):
         return f"{self.name}"
 
 
-def airplane_image_file_path(instance, filename):
-    _, extension = os.path.splitext(filename)
-    filename = f"{slugify(instance.name)}-{uuid.uuid4()}.{extension}"
-
-    return os.path.join("uploads/airplanes/", filename)
-
-
 class Airplane(models.Model):
     name = models.CharField(max_length=255, unique=True)
     rows = models.IntegerField()
     seats_in_row = models.IntegerField()
     airplane_type = models.ForeignKey(AirplaneType, on_delete=models.CASCADE)
-    image = models.ImageField(null=True, upload_to=airplane_image_file_path)
 
     @property
     def capacity(self) -> int:
@@ -43,18 +50,6 @@ class Airplane(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class Crew(models.Model):
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.first_name + " " + self.last_name
-
-    @property
-    def full_name(self):
-        return f"{self.first_name} {self.last_name}"
 
 
 class Route(models.Model):
@@ -77,10 +72,10 @@ class Route(models.Model):
 
 class Flight(models.Model):
     route = models.ForeignKey(Route, on_delete=models.CASCADE)
+    airline = models.ForeignKey(Airline, related_name="flights", on_delete=models.CASCADE, null=True)
     airplane = models.ForeignKey(Airplane, on_delete=models.CASCADE)
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
-    crew = models.ManyToManyField(Crew, related_name="flights")
 
     class Meta:
         ordering = ["departure_time"]
