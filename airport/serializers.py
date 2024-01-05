@@ -198,7 +198,9 @@ class FlightDetailSerializer(FlightSerializer):
         many=True,
         read_only=True,
     )
-    crew = CrewSerializer(read_only=True, many=True)
+    crew = serializers.StringRelatedField(
+        many=True,
+    )
 
     class Meta:
         model = Flight

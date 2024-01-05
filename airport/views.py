@@ -143,8 +143,8 @@ class FlightViewSet(
     GenericViewSet,
 ):
     queryset = Flight.objects.select_related(
-        "airplane", "route__source", "route__destination"
-    ).prefetch_related("airline")
+        "airplane", "route__source", "route__destination", "airline"
+    ).prefetch_related("crew")
     serializer_class = FlightSerializer
     pagination_class = FlightPagination
 
