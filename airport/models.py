@@ -52,6 +52,18 @@ class Airplane(models.Model):
         return self.name
 
 
+class Crew(models.Model):
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+
+    @property
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}"
+
+    def __str__(self):
+        return self.full_name
+
+
 class Route(models.Model):
     source = models.ForeignKey(
         Airport, on_delete=models.CASCADE, related_name="route_sources"
@@ -72,10 +84,15 @@ class Route(models.Model):
 
 class Flight(models.Model):
     route = models.ForeignKey(Route, on_delete=models.CASCADE)
-    airline = models.ForeignKey(Airline, related_name="flights", on_delete=models.CASCADE, null=True)
+    airline = models.ForeignKey(
+        Airline,
+        related_name="flights",
+        on_delete=models.CASCADE,
+    )
     airplane = models.ForeignKey(Airplane, on_delete=models.CASCADE)
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
+    crew = models.ManyToManyField(Crew, related_name="flights")
 
     class Meta:
         ordering = ["departure_time"]
