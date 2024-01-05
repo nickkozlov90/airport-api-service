@@ -11,6 +11,7 @@ from airport.models import (
     AirplaneType,
     Airplane,
     Airline,
+    Crew,
     Route,
     Flight,
     Order,
@@ -23,6 +24,7 @@ from airport.serializers import (
     AirlineImageSerializer,
     AirplaneTypeSerializer,
     AirplaneSerializer,
+    CrewSerializer,
     RouteSerializer,
     RouteListSerializer,
     RouteDetailSerializer,
@@ -98,6 +100,16 @@ class AirplaneViewSet(
 ):
     queryset = Airplane.objects.all()
     serializer_class = AirplaneSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
+
+
+class CrewViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
+    queryset = Crew.objects.all()
+    serializer_class = CrewSerializer
     permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 

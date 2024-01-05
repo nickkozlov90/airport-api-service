@@ -7,6 +7,7 @@ from airport.models import (
     Airport,
     Airline,
     Airplane,
+    Crew,
     Route,
     Flight,
     Order,
@@ -17,31 +18,31 @@ from airport.models import (
 class AirportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airport
-        fields = ("id", "name", "closest_big_city")
+        fields = ("id", "name", "code", "closest_big_city",)
 
 
 class AirlineSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airline
-        fields = ("id", "name")
+        fields = ("id", "name",)
 
 
 class AirlineListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airline
-        fields = ("id", "name", "image")
+        fields = ("id", "name", "image",)
 
 
 class AirlineImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airline
-        fields = ("id", "image")
+        fields = ("id", "image",)
 
 
 class AirplaneTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Airport
-        fields = ("id", "name")
+        fields = ("id", "name",)
 
 
 class AirplaneSerializer(serializers.ModelSerializer):
@@ -53,14 +54,20 @@ class AirplaneSerializer(serializers.ModelSerializer):
             "name",
             "rows",
             "seats_in_row",
-            "capacity"
+            "capacity",
         )
+
+
+class CrewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Crew
+        fields = ("id", "first_name", "last_name",)
 
 
 class RouteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Route
-        fields = ("id", "source", "destination", "distance")
+        fields = ("id", "source", "destination", "distance",)
 
 
 class RouteListSerializer(RouteSerializer):
@@ -75,7 +82,7 @@ class RouteListSerializer(RouteSerializer):
 
     class Meta:
         model = Route
-        fields = ("id", "source", "destination")
+        fields = ("id", "source", "destination",)
 
 
 class RouteDetailSerializer(RouteSerializer):
@@ -90,7 +97,7 @@ class RouteDetailSerializer(RouteSerializer):
 
     class Meta:
         model = Route
-        fields = ("id", "source", "destination", "distance")
+        fields = ("id", "source", "destination", "distance",)
 
 
 class FlightSerializer(serializers.ModelSerializer):
@@ -156,7 +163,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ticket
-        fields = ("id", "row", "seat", "flight")
+        fields = ("id", "row", "seat", "flight",)
         validators = [
             UniqueTogetherValidator(
                 queryset=Ticket.objects.all(),
@@ -173,7 +180,7 @@ class TicketListSerializer(TicketSerializer):
 class TicketSeatsSerializer(TicketSerializer):
     class Meta:
         model = Ticket
-        fields = ("row", "seat")
+        fields = ("row", "seat",)
 
 
 class FlightDetailSerializer(FlightSerializer):
@@ -191,6 +198,7 @@ class FlightDetailSerializer(FlightSerializer):
         many=True,
         read_only=True,
     )
+    crew = CrewSerializer(read_only=True, many=True)
 
     class Meta:
         model = Flight
@@ -202,6 +210,7 @@ class FlightDetailSerializer(FlightSerializer):
             "airline",
             "airplane_name",
             "airplane_type",
+            "crew",
             "taken_tickets",
         )
 
@@ -211,7 +220,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ("id", "created_at", "tickets")
+        fields = ("id", "created_at", "tickets",)
 
     def create(self, validated_data):
         with transaction.atomic():
