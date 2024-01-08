@@ -75,9 +75,9 @@ class Route(models.Model):
 
     def __str__(self):
         return (
-            f"{self.source.short_name}"
+            f"{self.source.code}"
             f"({self.source.closest_big_city})"
-            f" - {self.destination.short_name}"
+            f" - {self.destination.code}"
             f"({self.destination.closest_big_city})"
         )
 
