@@ -16,7 +16,10 @@ from airport.models import (
     Flight,
     Order,
 )
-from airport.permissions import IsAdminOrIfAuthenticatedReadOnly
+from airport.permissions import (
+    IsAdminOrIfAuthenticatedReadOnly,
+    ReadOnlyOrAdminPermission
+)
 from airport.serializers import (
     AirportSerializer,
     AirlineSerializer,
@@ -138,6 +141,7 @@ class FlightPagination(PageNumberPagination):
 
 class FlightViewSet(
     mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     GenericViewSet,
@@ -147,6 +151,7 @@ class FlightViewSet(
     ).prefetch_related("crew")
     serializer_class = FlightSerializer
     pagination_class = FlightPagination
+    permission_classes = (ReadOnlyOrAdminPermission,)
 
     @staticmethod
     def _params_to_ints(qs):
