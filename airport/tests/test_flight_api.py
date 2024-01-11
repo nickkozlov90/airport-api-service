@@ -8,9 +8,9 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 from airport.models import (
-    Flight, Airport, Route, Airline, Airplane, Crew, AirplaneType
+    Flight, Airport, Route, Airline, Airplane, Crew, AirplaneType, Order, Ticket
 )
-from airport.serializers import FlightDetailSerializer
+from airport.serializers import FlightDetailSerializer, FlightListSerializer
 
 FLIGHT_URL = reverse("airport:flight-list")
 
@@ -80,7 +80,7 @@ class UnauthenticatedFlightApiTests(TestCase):
         flight_2.crew.add(1)
         flight_2.save()
 
-    def test_retrieve_movie_detail(self):
+    def test_retrieve_flight_detail(self):
         flight = Flight.objects.get(id=1)
         url = detail_url(flight.id)
         res = self.client.get(url)
@@ -91,7 +91,8 @@ class UnauthenticatedFlightApiTests(TestCase):
 
     def test_list_flights(self):
         res = self.client.get(FLIGHT_URL)
-
+        flights = Flight.objects.all()
+        serializer = FlightListSerializer(flights)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data["results"]), 2)
 
@@ -144,6 +145,57 @@ class UnauthenticatedFlightApiTests(TestCase):
         self.assertEqual(len(res.data["results"]), 2)
         for flight in res.data["results"]:
             self.assertEqual(flight["route_destination"], str(target_destination))
+
+    def test_tickets_available_if_zero_tickets_ordered(self):
+        res = self.client.get(FLIGHT_URL)
+        tickets_available = Flight.objects.get(id=1).airplane.capacity
+        self.assertEqual(
+            res.data["results"][0]["tickets_available"],
+            tickets_available
+        )
+
+    def test_tickets_available_if_one_ticket_ordered(self):
+        user = get_user_model().objects.create_user(
+            "test@test.com",
+            "testpass",
+        )
+        flight = Flight.objects.get(id=1)
+        order = Order.objects.create(user=user)
+        Ticket.objects.create(
+            flight=flight,
+            order=order,
+            row=1,
+            seat=1,
+        )
+        tickets_ordered = flight.tickets.count()
+        res = self.client.get(FLIGHT_URL)
+
+        tickets_available = Flight.objects.get(id=1).airplane.capacity
+        self.assertEqual(
+            res.data["results"][0]["tickets_available"],
+            tickets_available - tickets_ordered
+        )
+
+    def test_tickets_available_if_all_tickets_ordered(self):
+        user = get_user_model().objects.create_user(
+            "test@test.com",
+            "testpass",
+        )
+
+        flight = Flight.objects.get(id=1)
+        order = Order.objects.create(user=user)
+        for row in range(flight.airplane.rows):
+            for seat in range(flight.airplane.seats_in_row):
+                Ticket.objects.create(
+                    flight=flight,
+                    order=order,
+                    row=row,
+                    seat=seat,
+                )
+
+        res = self.client.get(FLIGHT_URL)
+
+        self.assertEqual(res.data["results"][0]["tickets_available"], 0)
 
     def test_create_flight_forbidden(self):
         payload = {

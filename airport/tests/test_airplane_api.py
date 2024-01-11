@@ -26,10 +26,6 @@ def sample_airplane(**params):
     return Airplane.objects.create(**defaults)
 
 
-# def detail_url(airport_id):
-#     return reverse("airport:airport-detail", args=[airport_id])
-
-
 class UnauthenticatedAirportApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()

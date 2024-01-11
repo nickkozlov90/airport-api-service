@@ -11,7 +11,7 @@ from airport.models import (
     Route,
     Flight,
     Order,
-    Ticket,
+    Ticket, AirplaneType,
 )
 
 
@@ -41,7 +41,7 @@ class AirlineImageSerializer(serializers.ModelSerializer):
 
 class AirplaneTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Airport
+        model = AirplaneType
         fields = ("id", "name",)
 
 
@@ -50,8 +50,8 @@ class AirplaneSerializer(serializers.ModelSerializer):
         model = Airplane
         fields = (
             "id",
-            "airplane_type",
             "name",
+            "airplane_type",
             "rows",
             "seats_in_row",
             "capacity",
@@ -72,11 +72,13 @@ class RouteSerializer(serializers.ModelSerializer):
 
 class RouteListSerializer(RouteSerializer):
     source = serializers.SlugRelatedField(
-        read_only=True,
+        queryset=Airport.objects.all(),
+        # read_only=True,
         slug_field="name"
     )
     destination = serializers.SlugRelatedField(
-        read_only=True,
+        queryset=Airport.objects.all(),
+        # read_only=True,
         slug_field="name"
     )
 
@@ -101,34 +103,27 @@ class RouteDetailSerializer(RouteSerializer):
 
 
 class FlightSerializer(serializers.ModelSerializer):
-    route = RouteListSerializer(read_only=True)
     departure_time = serializers.DateTimeField(
-        read_only=True, format="%Y-%m-%d %H:%M"
+        format="%Y-%m-%d %H:%M"
     )
     arrival_time = serializers.DateTimeField(
-        read_only=True, format="%Y-%m-%d %H:%M"
+        format="%Y-%m-%d %H:%M"
     )
 
     class Meta:
         model = Flight
-        fields = (
-            "id",
-            "route",
-            "departure_time",
-            "arrival_time",
-        )
+        fields = "__all__"
 
 
 class FlightListSerializer(FlightSerializer):
     route_source = serializers.CharField(
-        source="route.source", read_only=True
+        source="route.source",
     )
     route_destination = serializers.CharField(
         source="route.destination", read_only=True
     )
     airplane_num_seats = serializers.IntegerField(
         source="airplane.capacity",
-        read_only=True,
     )
     tickets_available = serializers.IntegerField(read_only=True)
     airline_image = serializers.ImageField(
@@ -184,19 +179,17 @@ class TicketSeatsSerializer(TicketSerializer):
 
 
 class FlightDetailSerializer(FlightSerializer):
+    route = RouteListSerializer()
     airplane_name = serializers.CharField(
-        read_only=True,
         source="airplane.name"
     )
     airplane_type = serializers.CharField(
-        read_only=True,
         source="airplane.airplane_type"
     )
     airline = AirlineListSerializer()
     taken_tickets = TicketSeatsSerializer(
         source="tickets",
         many=True,
-        read_only=True,
     )
     crew = serializers.StringRelatedField(
         many=True,

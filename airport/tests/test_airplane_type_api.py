@@ -1,7 +1,3 @@
-import tempfile
-import os
-
-from PIL import Image
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -24,7 +20,7 @@ def sample_airplane_type(**params):
     return AirplaneType.objects.create(**defaults)
 
 
-class UnauthenticatedMovieApiTests(TestCase):
+class UnauthenticatedAirplaneTypeApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
@@ -33,7 +29,7 @@ class UnauthenticatedMovieApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class AuthenticatedMovieApiTests(TestCase):
+class AuthenticatedAirplaneTypeApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(

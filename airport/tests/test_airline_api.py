@@ -127,8 +127,8 @@ class AirlineImageUploadTests(TestCase):
         )
         self.client.force_authenticate(self.user)
         self.airline = sample_airline()
-        self.flight = sample_flight()
-        self.flight.airline = self.airline
+        self.flight = sample_flight(airline=self.airline)
+        # self.flight.airline = self.airline
         self.flight.save()
 
     def tearDown(self):
