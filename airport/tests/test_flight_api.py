@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
+from django.db.models import F, Count
 from django.test import TestCase
 from django.urls import reverse
 
@@ -91,10 +92,14 @@ class UnauthenticatedFlightApiTests(TestCase):
 
     def test_list_flights(self):
         res = self.client.get(FLIGHT_URL)
-        flights = Flight.objects.all()
-        serializer = FlightListSerializer(flights)
+        flights = Flight.objects.all().annotate(
+                tickets_available=F("airplane__rows")
+                * F("airplane__seats_in_row")
+                - Count("tickets")
+            ).order_by("departure_time")
+        serializer = FlightListSerializer(flights, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res.data["results"]), 2)
+        self.assertEqual(res.data["results"], serializer.data)
 
     def test_filter_flights_by_source(self):
         target_source = Flight.objects.get(id=1).route.source
