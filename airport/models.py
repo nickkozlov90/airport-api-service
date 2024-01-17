@@ -169,5 +169,3 @@ class Ticket(models.Model):
             )
         ]
         ordering = ["flight__departure_time", "row", "seat"]
-
-
