@@ -61,8 +61,8 @@ class AuthenticatedAirportApiTests(TestCase):
 
         res = self.client.get(AIRPLANE_URL)
 
-        movies = Airplane.objects.order_by("id")
-        serializer = AirplaneSerializer(movies, many=True)
+        airplanes = Airplane.objects.order_by("id")
+        serializer = AirplaneSerializer(airplanes, many=True)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
