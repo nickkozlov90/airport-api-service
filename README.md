@@ -19,12 +19,12 @@ This is a Django-based API for tracking flights from airports across the whole g
 * The main branch is the most stable branch at any given time, ensure you're working from it.
 
 * If you want to run the app locally follow the next steps:
-2. Create a virtual environment:
+1. Create a virtual environment:
 
     ```bash
    python -m venv venv
     ```
-3. Activate the virtual environment:
+2. Activate the virtual environment:
 
    On Windows: 
    ```bash
@@ -35,12 +35,53 @@ This is a Django-based API for tracking flights from airports across the whole g
    source venv/bin/activate
    ```
    
-4. Install dependencies:
+3. Install dependencies:
 
    ```bash
    pip install -r requirements.txt
    ```
-5. Copy this file ".env_sample" and rename it to ".env", then fill in the actual values for your local development environment.
-* Run npm install to install all dependencies
-* You can either work with the default mLab database or use your locally installed MongoDB. Do configure to your choice in the application entry file.
-* Create an .env file in your project root folder and add your variables. See .env.sample for assistance.
+4. Copy this file ".env_sample" and rename it to ".env", then fill in the actual values for your local development environment.
+5. Apply the migrations:
+
+   ```bash
+   python manage.py migrate
+   ```
+
+6. To run the development server, use the following command:
+
+   ```bash
+   python manage.py runserver
+   ```
+
+You can also run the application via the Docker. For this purpose make sure the Docker is installed on your computer and follow the next steps:
+1. Fill the actual data for ".env" file (see above).
+2. Build the app image and start the containers for the application and the database:
+   ```bash
+   docker-compose up --build
+   ```
+
+Access the application in your web browser at http://localhost:8000.
+
+### API Endpoints
+
+The list of available endpoints you can find at http://127.0.0.1:8000/api/doc/swagger/.
+
+
+## Project Fixture Files
+
+ - This project includes fixture files that are used for testing and demonstration purposes.
+The fixture files contain sample data representing various airplanes, flights, crews and etc.
+ - You can find the fixture file is named `data_for_db.json` in the root directory.
+ - To load the fixture data into the application, use the following command:
+
+   ```bash
+   python manage.py loaddata data_for_db.json
+   ```
+
+### Technologies Used
+* [Django REST framework](https://www.django-rest-framework.org/) This is toolkit for building Web APIs, providing features such as serialization, authentication, viewsets, and class-based views to simplify the development of RESTful services in Django applications.
+* [Docker](https://www.docker.com/) This is a platform that enables developers to automate the deployment and scaling of applications across various computing environments.
+* [PostgreSQL](https://www.postgresql.org/) This is a powerful, open source object-relational database system.
+* [Swagger](https://swagger.io/) This is open source and professional toolset to simplify documentation of API.
+
+Authentication of users is implemented with means of JSON Web Tokens.
