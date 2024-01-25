@@ -203,6 +203,6 @@ class AirlineImageUploadTests(TestCase):
             img.save(ntf, format="JPEG")
             ntf.seek(0)
             self.client.post(url, {"image": ntf}, format="multipart")
-        res = self.client.get(FLIGHT_URL + "1/")
+        res = self.client.get(FLIGHT_URL + f"{self.flight.id}/")
 
         self.assertIn("image", res.data["airline"].keys())

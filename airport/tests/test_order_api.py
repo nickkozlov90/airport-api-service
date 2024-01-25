@@ -49,14 +49,14 @@ class AuthenticatedOrderApiTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        Airline.objects.create(name="Test airline")
-        Airplane.objects.create(
+        cls.airline = Airline.objects.create(name="Test airline")
+        cls.airplane = Airplane.objects.create(
             name="Test airplane",
             rows=30,
             seats_in_row=6,
             airplane_type=AirplaneType.objects.create(name="Test type"),
         )
-        Route.objects.create(
+        cls.route = Route.objects.create(
             source=Airport.objects.create(
                 name="Heathrow Airport",
                 code="LHR",
@@ -70,17 +70,17 @@ class AuthenticatedOrderApiTests(TestCase):
             distance=400
         )
 
-        Crew.objects.create(first_name="John", last_name="Doe")
+        cls.crew = Crew.objects.create(first_name="John", last_name="Doe")
 
-        flight = Flight.objects.create(
-            airline=Airline.objects.get(id=1),
-            airplane=Airplane.objects.get(id=1),
-            route=Route.objects.get(id=1),
+        cls.flight = Flight.objects.create(
+            airline=cls.airline,
+            airplane=cls.airplane,
+            route=cls.route,
             departure_time="2022-06-02 14:00",
             arrival_time="2022-06-02 20:00",
         )
-        flight.crew.add(1)
-        flight.save()
+        cls.flight.crew.add(cls.crew.id)
+        cls.flight.save()
 
     def test_list_orders(self):
         Order.objects.create(user=self.user)
@@ -88,7 +88,7 @@ class AuthenticatedOrderApiTests(TestCase):
 
         res = self.client.get(ORDER_URL)
 
-        orders = Order.objects.order_by("id")
+        orders = Order.objects.all()
         serializer = OrderListSerializer(orders, many=True)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -108,7 +108,7 @@ class AuthenticatedOrderApiTests(TestCase):
 
         res = self.client.get(ORDER_URL)
 
-        orders = Order.objects.filter(user=self.user.id).order_by("id")
+        orders = Order.objects.filter(user=self.user)
         serializer = OrderListSerializer(orders, many=True)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -120,7 +120,7 @@ class AuthenticatedOrderApiTests(TestCase):
                 {
                     "seat": 1,
                     "row": 1,
-                    "flight": 1
+                    "flight": self.flight.id
                 }
             ]
         }
@@ -142,7 +142,7 @@ class AuthenticatedOrderApiTests(TestCase):
                 {
                     "seat": 1,
                     "row": 1,
-                    "flight": 1
+                    "flight": self.flight.id
                 }
             ]
         }
@@ -155,22 +155,23 @@ class AuthenticatedOrderApiTests(TestCase):
         self.assertEqual(order.user.id, self.user.id)
 
     def test_ticket_unique_constraint(self):
-        flight = Flight.objects.get(id=1)
         order = Order.objects.create(user=self.user)
-        Ticket.objects.create(seat=1, row=1, flight=flight, order=order)
+        Ticket.objects.create(seat=1, row=1, flight=self.flight, order=order)
 
         payload = {
             "tickets": [
                 {
                     "seat": 1,
                     "row": 1,
-                    "flight": flight.id
+                    "flight": self.flight.id
                 }
             ]
         }
         payload = json.dumps(payload)
 
-        res = self.client.post(ORDER_URL, data=payload, content_type='application/json')
+        res = self.client.post(
+            ORDER_URL, data=payload, content_type='application/json'
+        )
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn(
@@ -180,11 +181,12 @@ class AuthenticatedOrderApiTests(TestCase):
         )
 
     def test_order_pagination(self):
-        flight = Flight.objects.get(id=1)
         orders_num = 12
         for num in range(orders_num):
             order = Order.objects.create(user=self.user)
-            Ticket.objects.create(seat=1, row=num, flight=flight, order=order)
+            Ticket.objects.create(
+                seat=1, row=num, flight=self.flight, order=order
+            )
 
         res = self.client.get(ORDER_URL)
 
